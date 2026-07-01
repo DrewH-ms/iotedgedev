@@ -3,10 +3,15 @@ trigger:
     include:
     - refs/tags/v*  
  
+# FORK/TEST RUN: use the Microsoft-hosted ubuntu-latest pool. The 1ES pool below only
+# exists in the Azure DevOps org and fails validation on a fork. 
+# TODO: Restore for the real pipeline.
 pool:
-  name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
-  demands:
-    - ImageOverride -equals MMSUbuntu22.04
+  vmImage: ubuntu-latest
+# pool:
+#   name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
+#   demands:
+#     - ImageOverride -equals MMSUbuntu22.04
 
 steps:
 - task: UsePythonVersion@0
