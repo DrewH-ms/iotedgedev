@@ -97,7 +97,7 @@ def runner_invoke(args, expect_failure=False):
         if (result.exit_code == 0) or (expect_failure is True):
             return result
         else:
-            raise Exception(result.stdout)
+            raise Exception(result.stdout + (result.stderr or ""))
 
 
 def start_process(command, is_shell):
