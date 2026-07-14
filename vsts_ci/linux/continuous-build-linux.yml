@@ -27,6 +27,10 @@ steps:
       az extension add --name azure-iot
     displayName: "Update and install required tools"
 
+  - script: |
+      docker run -d -p 5000:5000 --restart=always --name registry registry:2
+    displayName: "Start local container registry"
+
   - ${{ if eq(parameters.azureServiceConnection, '') }}:
       - script: |
           mvn -v
