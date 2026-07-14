@@ -55,6 +55,7 @@ jobs:
 
   - job: Linux2004
     dependsOn: Windows
+    condition: succeededOrFailed()
     pool:
       vmImage: ubuntu-22.04
     strategy:
@@ -70,6 +71,7 @@ jobs:
 
   - job: Linux2204
     dependsOn: Linux2004
+    condition: succeededOrFailed()
     pool:
       vmImage: ubuntu-22.04
     strategy:
