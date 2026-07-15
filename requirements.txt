@@ -10,4 +10,4 @@ jsonschema==4.26.0
 iotedgehubdev @ git+https://github.com/Azure/iotedgehubdev.git@drew-python-3.14-upgrade
 applicationinsights==0.11.9
 commentjson==0.9.0
-pywin32==306; sys_platform == 'win32'
+pywin32==312; sys_platform == 'win32'
