@@ -34,7 +34,6 @@ def get_docker_client():
     envvars.load(force=True)
     utility = Utility(envvars, output)
     docker_client = Docker(envvars, utility, output)
-    docker_client.init_registry()
     return docker_client
 
 

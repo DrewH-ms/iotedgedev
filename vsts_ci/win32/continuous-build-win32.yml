@@ -20,34 +20,6 @@ steps:
     displayName: "Install IoT Hub explorer, Yeoman and Azure IoT Edge Node.js module generator packages"
 
   - pwsh: |
-      $ErrorActionPreference = "Stop"
-      go version
-      $env:GOBIN = "$env:USERPROFILE\registry-bin"
-      New-Item -ItemType Directory -Force -Path $env:GOBIN | Out-Null
-      go install github.com/distribution/distribution/v3/cmd/registry@v3.1.1
-      if ($LASTEXITCODE -ne 0) { throw "go install registry failed with exit code $LASTEXITCODE" }
-      New-Item -ItemType Directory -Force -Path C:\registry-data | Out-Null
-      @(
-        'version: 0.1',
-        'storage:',
-        '  filesystem:',
-        '    rootdirectory: C:\registry-data',
-        'http:',
-        '  addr: 0.0.0.0:5000'
-      ) | Set-Content -Path C:\registry-config.yml -Encoding ascii
-      Start-Process -FilePath "$env:GOBIN\registry.exe" -ArgumentList "serve","C:\registry-config.yml" -WindowStyle Hidden
-      $ready = $false
-      foreach ($i in 1..30) {
-        try {
-          $r = Invoke-WebRequest -UseBasicParsing -Uri "http://localhost:5000/v2/" -TimeoutSec 2
-          if ($r.StatusCode -eq 200) { $ready = $true; break }
-        } catch { Start-Sleep -Seconds 2 }
-      }
-      if (-not $ready) { throw "Local registry did not become ready on :5000" }
-      Write-Host "Local registry is ready on :5000"
-    displayName: "Build and run local registry (native, ltsc2022-compatible)"
-
-  - pwsh: |
       pip install tox
       tox -e "$(TOXENV)"
     displayName: "Run tests against iotedgedev source code"
