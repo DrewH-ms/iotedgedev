@@ -3,6 +3,10 @@ steps:
       ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\.env.tmp" -Raw) -replace 'IOTHUB_CONNECTION_STRING=".*"','IOTHUB_CONNECTION_STRING="$(IOTHUB_CONNECTION_STRING)"' -replace 'DEVICE_CONNECTION_STRING=".*"','DEVICE_CONNECTION_STRING="$(DEVICE_CONNECTION_STRING)"' -replace 'CONTAINER_REGISTRY_SERVER=".*"','CONTAINER_REGISTRY_SERVER="$(CONTAINER_REGISTRY_SERVER)"' -replace 'CONTAINER_REGISTRY_USERNAME=".*"','CONTAINER_REGISTRY_USERNAME="$(CONTAINER_REGISTRY_USERNAME)"' -replace 'CONTAINER_REGISTRY_PASSWORD=".*"','CONTAINER_REGISTRY_PASSWORD="$(CONTAINER_REGISTRY_PASSWORD)"') | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\.env.tmp"
     displayName: "Update .env.tmp file"
 
+  - pwsh: |
+      Copy-Item -Path "$(BUILD.REPOSITORY.LOCALPATH)\.env.tmp" -Destination "$(BUILD.REPOSITORY.LOCALPATH)\.env" -Force
+    displayName: "Create .env from .env.tmp"
+
   - task: UsePythonVersion@0
     inputs:
       versionSpec: "$(python.version)"
@@ -16,9 +20,32 @@ steps:
     displayName: "Install IoT Hub explorer, Yeoman and Azure IoT Edge Node.js module generator packages"
 
   - pwsh: |
-      mkdir C:\registry
-      docker run -d -p 5000:5000 --restart=always --name registry -v C:\registry:C:\registry stefanscherer/registry-windows:2.6.2
-    displayName: "Pull and run local registry containers"
+      $ErrorActionPreference = "Stop"
+      go version
+      $env:GOBIN = "$env:USERPROFILE\registry-bin"
+      New-Item -ItemType Directory -Force -Path $env:GOBIN | Out-Null
+      go install github.com/distribution/distribution/v3/cmd/registry@v3.1.1
+      if ($LASTEXITCODE -ne 0) { throw "go install registry failed with exit code $LASTEXITCODE" }
+      New-Item -ItemType Directory -Force -Path C:\registry-data | Out-Null
+      @(
+        'version: 0.1',
+        'storage:',
+        '  filesystem:',
+        '    rootdirectory: C:\registry-data',
+        'http:',
+        '  addr: 0.0.0.0:5000'
+      ) | Set-Content -Path C:\registry-config.yml -Encoding ascii
+      Start-Process -FilePath "$env:GOBIN\registry.exe" -ArgumentList "serve","C:\registry-config.yml" -WindowStyle Hidden
+      $ready = $false
+      foreach ($i in 1..30) {
+        try {
+          $r = Invoke-WebRequest -UseBasicParsing -Uri "http://localhost:5000/v2/" -TimeoutSec 2
+          if ($r.StatusCode -eq 200) { $ready = $true; break }
+        } catch { Start-Sleep -Seconds 2 }
+      }
+      if (-not $ready) { throw "Local registry did not become ready on :5000" }
+      Write-Host "Local registry is ready on :5000"
+    displayName: "Build and run local registry (native, ltsc2022-compatible)"
 
   - pwsh: |
       pip install tox
