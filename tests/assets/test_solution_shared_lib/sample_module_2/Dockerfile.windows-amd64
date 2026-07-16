@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:8.0-windowsservercore-ltsc2022 AS build-env
 
 COPY ./libs /app/libs
 COPY ./sample_module_2/*.csproj /app/sample_module_2/
