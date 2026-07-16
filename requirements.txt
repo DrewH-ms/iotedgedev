@@ -5,9 +5,7 @@ requests==2.32.3
 fstrings==0.1.0
 azure-cli-core==2.87.0
 jsonschema==4.26.0
-# TODO: restore to iotedgehubdev==<3.14-compatible release> once published on PyPI.
-# PyPI 0.14.18 is capped Requires-Python <3.10; install the 3.14 upgrade branch so tox resolves on 3.14.
-iotedgehubdev @ git+https://github.com/Azure/iotedgehubdev.git@drew-python-3.14-upgrade
+iotedgehubdev==0.14.19
 applicationinsights==0.11.9
 commentjson==0.9.0
 pywin32==312; sys_platform == 'win32'

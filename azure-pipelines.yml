@@ -3,15 +3,10 @@ trigger:
     include:
     - refs/tags/v*  
  
-# FORK/TEST RUN: use the Microsoft-hosted ubuntu-latest pool. The 1ES pool below only
-# exists in the Azure DevOps org and fails validation on a fork. 
-# TODO: Restore for the real pipeline.
 pool:
-  vmImage: ubuntu-latest
-# pool:
-#   name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
-#   demands:
-#     - ImageOverride -equals MMSUbuntu22.04
+  name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
+  demands:
+    - ImageOverride -equals MMSUbuntu22.04
 
 steps:
 - task: UsePythonVersion@0
@@ -56,13 +51,6 @@ steps:
     script: |
       set -euo pipefail
       python -m build --wheel
-      # TODO: Remove this before main push.
-      # iotedgehubdev on PyPI is pinned Requires-Python <3.10, so the wheel's
-      # `iotedgehubdev>=0.14.18` dependency cannot resolve on Python 3.14. Install the
-      # Python 3.14 fork branch first (version 0.14.18 satisfies the requirement); pip then
-      # sees the dep already satisfied and won't hit PyPI. Restore to the PyPI release once a
-      # 3.14-compatible iotedgehubdev is published.
-      python -m pip install "git+https://github.com/DrewH-ms/iotedgehubdev.git@python-3.14-upgrade"
       pip install dist/iotedgedev-${VERSION}-py3-none-any.whl && iotedgedev --version
 
 - task: ArchiveFiles@2
@@ -103,23 +91,18 @@ steps:
       azcopy login --service-principal --application-id $(APPID)
       azcopy copy "$(Build.ArtifactStagingDirectory)/*"  "https://azuresdkpartnerdrops.blob.core.windows.net/drops/azure-iot-edge-tools-iotedgedev/python/$(VERSION)/"
 
-# TODO: remove this before main push
-# DISABLED FOR FORK/TEST RUN: references service connection 'github.com_marianan' which
-# only exists in the Azure DevOps project. ADO validates service connections at compile
-# time (ignoring `condition:`), so this must be commented out to test on a fork. Restore
-# for the real release pipeline.
-# - task: GitHubRelease@0
-#   condition: and(succeeded(), eq(variables['WHEEL_PUBLISH_FLAG'], 'true'))
-#   inputs:
-#     gitHubConnection: 'github.com_marianan'
-#     repositoryName: '$(Build.Repository.Name)'
-#     action: 'create'
-#     target: '$(Build.SourceVersion)'
-#     tagSource: 'manual'
-#     tag: '$(Build.SourceBranch)'
-#     releaseNotesSource: 'input'
-#     isPreRelease: true
-#     addChangeLog: false
+- task: GitHubRelease@0
+  condition: and(succeeded(), eq(variables['WHEEL_PUBLISH_FLAG'], 'true'))
+  inputs:
+    gitHubConnection: 'github.com_marianan'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'manual'
+    tag: '$(Build.SourceBranch)'
+    releaseNotesSource: 'input'
+    isPreRelease: true
+    addChangeLog: false
 
 - task: Bash@3
   displayName: "Build Docker image"
@@ -139,18 +122,16 @@ steps:
        docker run -v /var/run/docker.sock:/var/run/docker.sock -v /home/vsts/iotedge:/home/iotedge iotedgedevtoolscontainerregistry.azurecr.io/public/iotedge/iotedgedev:${PACKAGEVERSION}
     workingDirectory: 'docker/tool'
 
-# DISABLED FOR FORK/TEST RUN: references service connection 'IoTEdgeDev-Docker' which
-# only exists in the Azure DevOps project. Restore for the real release pipeline.
-# - task: Docker@2
-#   condition: and(succeeded(), eq(variables['WHEEL_PUBLISH_FLAG'], 'true'))
-#   displayName: "Push docker image to acr"
-#   inputs:
-#     containerRegistry: 'IoTEdgeDev-Docker'
-#     repository: 'public/iotedge/iotedgedev'
-#     command: 'push'
-#     tags: |
-#       $(VERSION)
-#       latest
+- task: Docker@2
+  condition: and(succeeded(), eq(variables['WHEEL_PUBLISH_FLAG'], 'true'))
+  displayName: "Push docker image to acr"
+  inputs:
+    containerRegistry: 'IoTEdgeDev-Docker'
+    repository: 'public/iotedge/iotedgedev'
+    command: 'push'
+    tags: |
+      $(VERSION)
+      latest
 
 - task: Bash@3
   condition: and(succeeded(), eq(variables['WHEEL_PUBLISH_FLAG'], 'true'))

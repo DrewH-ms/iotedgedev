@@ -14,7 +14,7 @@ requirements = [
     'fstrings',
     'azure-cli-core >= 2.80.0',
     'jsonschema',
-    'iotedgehubdev >= 0.14.18',
+    'iotedgehubdev >= 0.14.19',
     'applicationinsights == 0.11.9',
     'commentjson == 0.9.0',
     'pyyaml>=6.0',
