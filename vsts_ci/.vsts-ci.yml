@@ -10,7 +10,7 @@ trigger: none
 jobs:
   - job: Windows
     pool:
-      vmImage: windows-2019
+      vmImage: windows-2022
     strategy:
       matrix:
         Python36:
@@ -50,14 +50,11 @@ jobs:
   #   steps:
   #     - template: darwin/continuous-build-darwin.yml
 
-  - job: Ubuntu20
+  - job: Ubuntu22
     pool:
-      vmImage: ubuntu-20.04
+      vmImage: ubuntu-22.04
     strategy:
       matrix:
-        Python36:
-          python.version: "3.6"
-          TOXENV: "py36"
         Python37:
           python.version: "3.7"
           TOXENV: "py37"
