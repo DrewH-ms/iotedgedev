@@ -2,6 +2,11 @@
 # Create and test a Python package on multiple Python versions.
 # Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
 # https://docs.microsoft.com/vsts/pipelines/languages/python
+parameters:
+  - name: azureServiceConnection
+    type: string
+    default: 'azurerm-iotedge-test'
+
 pr:
   - main
 
@@ -41,7 +46,7 @@ jobs:
         displayName: "GUARD: ensure Docker daemon is running"
       - template: win32/continuous-build-win32.yml
         parameters:
-          azureServiceConnection: "$(AZURE_SERVICE_CONNECTION)"
+          azureServiceConnection: ${{ parameters.azureServiceConnection }}
 
   # - job: MacOS
   #   pool:
@@ -84,4 +89,4 @@ jobs:
     steps:
       - template: linux/continuous-build-linux.yml
         parameters:
-          azureServiceConnection: "$(AZURE_SERVICE_CONNECTION)"
+          azureServiceConnection: ${{ parameters.azureServiceConnection }}
