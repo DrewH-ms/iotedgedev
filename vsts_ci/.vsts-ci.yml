@@ -7,9 +7,7 @@ pr:
 
 trigger: none
 
-# Set this to the name of an Azure service connection to run the tests with AAD
-# auth (IOTHUB_AUTH_TYPE=login). Leaving it empty falls back to connection-string
-# auth, which fails against IoT Hubs that have disableLocalAuth enabled.
+# Azure service connection name; enables AAD auth. Empty uses connection strings.
 parameters:
   - name: azureServiceConnection
     type: string
