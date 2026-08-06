@@ -6,13 +6,13 @@ trigger:
 pool:
   name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
   demands:
-    - ImageOverride -equals MMSUbuntu22.04
+    - ImageOverride -equals MMSUbuntu18.04TLS
 
 steps:
 - task: UsePythonVersion@0
   displayName:  "Install Python"
   inputs:
-    versionSpec: '3.14'
+    versionSpec: '3.7'
     addToPath: true
     architecture: 'x64'
 
@@ -21,12 +21,12 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      set -euo pipefail
-      python -m pip install --upgrade pip
-      python -m pip install build twine tox wheel
-      sudo apt-get update
-      sudo apt-get install -y gcc libpq-dev
-      sudo apt-get install -y python3-dev python3-pip python3-venv python3-wheel
+      pip install tox
+      pip install twine
+      sudo apt-get install gcc libpq-dev -y
+      sudo apt-get install python-dev  python-pip -y
+      sudo apt-get install python3-dev python3-pip python3-venv python3-wheel -y
+      pip3 install wheel
 
 - task: Bash@3
   displayName: "Update AIKey"
@@ -49,8 +49,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      set -euo pipefail
-      python -m build --wheel
+      python setup.py bdist_wheel
       pip install dist/iotedgedev-${VERSION}-py3-none-any.whl && iotedgedev --version
 
 - task: ArchiveFiles@2
